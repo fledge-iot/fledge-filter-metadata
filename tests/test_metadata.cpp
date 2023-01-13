@@ -33,7 +33,7 @@ extern "C"
 TEST(METADATA, MetadataDisabled)
 {
 	PLUGIN_INFORMATION *info = plugin_info();
-	ConfigCategory *config = new ConfigCategory("replace", info->config);
+	ConfigCategory *config = new ConfigCategory("metadata", info->config);
 	ASSERT_NE(config, (ConfigCategory *)NULL);
 	config->setItemsValueFromDefault();
 	ASSERT_EQ(config->itemExists("config"), true);
@@ -93,3 +93,4 @@ TEST(METADATA, MetadataAddDataPoints)
 	vector<Datapoint *> points = out->getReadingData();
 	ASSERT_EQ(points.size(), 2);
 }
+
