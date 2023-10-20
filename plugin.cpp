@@ -166,7 +166,15 @@ void plugin_ingest(PLUGIN_HANDLE *handle,
 		{
 			elem->addDatapoint(new Datapoint(*it));
 		}
-		AssetTracker::getAssetTracker()->addAssetTrackingTuple(info->configCatName, elem->getAssetName(), string("Filter"));
+		//AssetTracker::getAssetTracker()->addAssetTrackingTuple(info->configCatName, elem->getAssetName(), string("Filter"));
+		AssetTracker *instance =  nullptr;
+		instance = AssetTracker::getAssetTracker();
+		if (instance != nullptr)
+		{
+			instance->addAssetTrackingTuple(info->configCatName, elem->getAssetName(), string("Filter"));
+		}
+
+		
 	}
 	
 	filter->m_func(filter->m_data, origReadingSet);

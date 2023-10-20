@@ -7,6 +7,12 @@
 
 # build and packages
 build
+tests/build
+tests/cmake_install.cmake
+tests/CMakeCache.txt
+tests/CMakeFiles
+tests/*.xml
 
 # IDE
 *.idea
+
