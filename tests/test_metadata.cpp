@@ -94,3 +94,37 @@ TEST(METADATA, MetadataAddDataPoints)
 	ASSERT_EQ(points.size(), 2);
 }
 
+TEST(METADATA, MetadataAddSubs)
+{
+	PLUGIN_INFORMATION *info = plugin_info();
+	ConfigCategory *config = new ConfigCategory("replace", info->config);
+	ASSERT_NE(config, (ConfigCategory *)NULL);
+	config->setItemsValueFromDefault();
+	ASSERT_EQ(config->itemExists("config"), true);
+	ASSERT_EQ(config->itemExists("enable"), true);
+	config->setValue("config", "{ \"Source\":\"Camera $num$\"}");
+	config->setValue("enable", "true");
+	ReadingSet *outReadings;
+	void *handle = plugin_init(config, &outReadings, Handler);
+	vector<Reading *> *readings = new vector<Reading *>;
+
+	long testValue = 2;
+	DatapointValue dpv(testValue);
+	Datapoint *value = new Datapoint("num", dpv);
+	Reading *in = new Reading("test", value);
+	readings->push_back(in);
+
+	ReadingSet *readingSet = new ReadingSet(readings);
+	plugin_ingest(handle, (READINGSET *)readingSet);
+
+	vector<Reading *> results = outReadings->getAllReadings();
+	ASSERT_EQ(results.size(), 1);
+	Reading *out = results[0];
+	ASSERT_EQ(out->getDatapointCount(), 2);
+
+	vector<Datapoint *> points = out->getReadingData();
+	ASSERT_EQ(points.size(), 2);
+	Datapoint *dp = out->getDatapoint("Source");
+	ASSERT_STREQ(dp->getData().toStringValue().c_str(), "Camera 2");
+}
+

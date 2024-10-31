@@ -26,6 +26,41 @@ To add a metadata filter
 
   - Enable the filter and click on *Done* to activate it
 
+Macro Substitution
+------------------
+
+The metadata values may use macro substitution to include the values of other datapoints in the new metadata or the name of the asset. Macros are introduced by the use of $ characters and surround the name of the datapoint to substitute into the metadata.
+
+Let us assume we have a datapoint called *unit* which is the number of the camera attached to our system and we want to have a new datapoint called source which is a string and contains the word camera and the unit number of the camera. We can create metadata of the form
+
+.. code-block:: JSON
+
+        { "source" : "camera $unit$" }
+
+If we wanted to use the asset name of the reading in the metadata, we could use the reserve macro *$ASSET$*
+
+.. code-block:: JSON
+
+        { "source" : "$ASSET$ $unit$" }
+
+This example also illustrates that we can use multiple substitutions in a single meta data item.
+
+If the datapoint that is named in a macro substitution does not exist, then a blank is replaced with the macro name. It is however possible to provide a default value if the datapoint does not exist.
+
+.. code-block:: JSON
+
+        { "source" : "$ASSET$ $unit|unknown$" }
+
+In this case we would substitute the value of the unit datapoint if one existed or the string *unknown* if one did not.
+
+We can use substitution to duplicate a datapoint. Assume we have a datapoint called *location* that we want to both reserve the original value of but also do some destruction processing of later in the data pipeline. In this example we will use another filter to extract the first portion of the location, lets assume this gives us country information. We duplicate the *location* datapoint into a *country* datapoint using the meta filter with the following configuration.
+
+
+.. code-block:: JSON
+
+        { "country" : "$location$" }
+
+We now have a datapoint called *country* that contains the full location. A later filter in the pipeline will edit the value of this datapoint such that it just contains the country.
 
 Example Metadata
 ----------------
