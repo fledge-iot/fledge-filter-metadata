@@ -5,7 +5,7 @@
  *
  * Released under the Apache 2.0 Licence
  *
- * Author: Amandeep Singh Arora
+ * Author: Amandeep Singh Arora, Mark Riddoch
  */
 
 #include <string>
@@ -164,7 +164,18 @@ void plugin_ingest(PLUGIN_HANDLE *handle,
 	{
 		for (auto &it : info->metadata)
 		{
-			elem->addDatapoint(new Datapoint(*it));
+			if (it->getData().getType() == DatapointValue::T_STRING)
+			{
+				string name = it->getName();
+				string value = it->getData().toStringValue();
+				string sub = elem->substitute(value);
+				DatapointValue dpv(sub);
+				elem->addDatapoint(new Datapoint(name, dpv));
+			}
+			else
+			{
+				elem->addDatapoint(new Datapoint(*it));
+			}
 		}
 		//AssetTracker::getAssetTracker()->addAssetTrackingTuple(info->configCatName, elem->getAssetName(), string("Filter"));
 		AssetTracker *instance =  nullptr;
