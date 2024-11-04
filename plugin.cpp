@@ -5,7 +5,7 @@
  *
  * Released under the Apache 2.0 Licence
  *
- * Author: Amandeep Singh Arora
+ * Author: Amandeep Singh Arora, Mark Riddoch
  */
 
 #include <string>
