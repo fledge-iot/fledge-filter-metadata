@@ -118,7 +118,7 @@ PLUGIN_HANDLE plugin_init(ConfigCategory* config,
 			}
 			else if (itr->value.IsNumber())
 			{
-				DatapointValue dpv((long) itr->value.GetInt());
+				DatapointValue dpv((long) itr->value.GetInt64());
         			info->metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
 			}
 			else
