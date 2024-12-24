@@ -128,3 +128,83 @@ TEST(METADATA, MetadataAddSubs)
 	ASSERT_STREQ(dp->getData().toStringValue().c_str(), "Camera 2");
 }
 
+TEST(METADATA, INTEGER_MIN_MAX_LIMITS)
+{
+	PLUGIN_INFORMATION *info = plugin_info();
+	ConfigCategory *config = new ConfigCategory("metadata", info->config);
+	ASSERT_NE(config, (ConfigCategory *)NULL);
+	config->setItemsValueFromDefault();
+	ASSERT_EQ(config->itemExists("config"), true);
+	ASSERT_EQ(config->itemExists("enable"), true);
+	config->setValue("config", "{ \"INT1\":2147483647, \"INT2\":-2147483647 }");
+	config->setValue("enable", "true");
+	ReadingSet *outReadings;
+	void *handle = plugin_init(config, &outReadings, Handler);
+	vector<Reading *> *readings = new vector<Reading *>;
+
+	long testValue = 2;
+	DatapointValue dpv(testValue);
+	Datapoint *value = new Datapoint("test", dpv);
+	Reading *in = new Reading("test", value);
+	readings->push_back(in);
+
+	ReadingSet *readingSet = new ReadingSet(readings);
+	plugin_ingest(handle, (READINGSET *)readingSet);
+
+	vector<Reading *> results = outReadings->getAllReadings();
+	ASSERT_EQ(results.size(), 1);
+	Reading *out = results[0];
+
+	vector<Datapoint *> points = out->getReadingData();
+	ASSERT_EQ(points.size(), 3);
+	
+	ASSERT_EQ(points[0]->getName(), "test");
+	ASSERT_EQ(points[0]->getData().toInt(), 2);
+
+	ASSERT_EQ(points[1]->getName(), "INT1");
+	ASSERT_EQ(points[1]->getData().toInt(), 2147483647);
+
+	ASSERT_EQ(points[2]->getName(), "INT2");
+	ASSERT_EQ(points[2]->getData().toInt(), -2147483647);
+}
+
+TEST(METADATA, LONG_MIN_MAX_LIMITS)
+{
+	PLUGIN_INFORMATION *info = plugin_info();
+	ConfigCategory *config = new ConfigCategory("metadata", info->config);
+	ASSERT_NE(config, (ConfigCategory *)NULL);
+	config->setItemsValueFromDefault();
+	ASSERT_EQ(config->itemExists("config"), true);
+	ASSERT_EQ(config->itemExists("enable"), true);
+	config->setValue("config", "{ \"LONG1\":9223372036854775807, \"LONG2\":-9223372036854775807 }");
+	config->setValue("enable", "true");
+	ReadingSet *outReadings;
+	void *handle = plugin_init(config, &outReadings, Handler);
+	vector<Reading *> *readings = new vector<Reading *>;
+
+	long testValue = 2;
+	DatapointValue dpv(testValue);
+	Datapoint *value = new Datapoint("test", dpv);
+	Reading *in = new Reading("test", value);
+	readings->push_back(in);
+
+	ReadingSet *readingSet = new ReadingSet(readings);
+	plugin_ingest(handle, (READINGSET *)readingSet);
+
+	vector<Reading *> results = outReadings->getAllReadings();
+	ASSERT_EQ(results.size(), 1);
+	Reading *out = results[0];
+
+	vector<Datapoint *> points = out->getReadingData();
+	ASSERT_EQ(points.size(), 3);
+	
+	ASSERT_EQ(points[0]->getName(), "test");
+	ASSERT_EQ(points[0]->getData().toInt(), 2);
+
+	ASSERT_EQ(points[1]->getName(), "LONG1");
+	ASSERT_EQ(points[1]->getData().toInt(), 9223372036854775807);
+
+	ASSERT_EQ(points[2]->getName(), "LONG2");
+	ASSERT_EQ(points[2]->getData().toInt(), -9223372036854775807);
+}
+
