@@ -225,7 +225,7 @@ void plugin_reconfigure(PLUGIN_HANDLE *handle, const string& newConfig)
 			}
 			else if (itr->value.IsNumber())
 			{
-				DatapointValue dpv((long) itr->value.GetInt());
+				DatapointValue dpv((long) itr->value.GetInt64());
         			metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
 			}
 			else
