@@ -116,7 +116,7 @@ PLUGIN_HANDLE plugin_init(ConfigCategory* config,
 				DatapointValue dpv(itr->value.GetDouble());
         			info->metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
 			}
-			else if (itr->value.IsNumber())
+			else if (itr->value.IsInt64())
 			{
 				DatapointValue dpv((long) itr->value.GetInt64());
         			info->metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
@@ -223,7 +223,7 @@ void plugin_reconfigure(PLUGIN_HANDLE *handle, const string& newConfig)
 				DatapointValue dpv(itr->value.GetDouble());
         			metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
 			}
-			else if (itr->value.IsNumber())
+			else if (itr->value.IsInt64())
 			{
 				DatapointValue dpv((long) itr->value.GetInt64());
         			metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
