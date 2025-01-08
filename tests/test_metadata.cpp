@@ -208,3 +208,43 @@ TEST(METADATA, LONG_MIN_MAX_LIMITS)
 	ASSERT_EQ(points[2]->getData().toInt(), -9223372036854775807);
 }
 
+TEST(METADATA, MetadataNestedJSON)
+{
+	PLUGIN_INFORMATION *info = plugin_info();
+	ConfigCategory *config = new ConfigCategory("metadata", info->config);
+	ASSERT_NE(config, (ConfigCategory *)NULL);
+	config->setItemsValueFromDefault();
+	ASSERT_EQ(config->itemExists("config"), true);
+	ASSERT_EQ(config->itemExists("enable"), true);
+	config->setValue("config", "{ \"value\":{\"Building\": \"Pearson\", \"Location\": \"NY\"}}");
+	config->setValue("enable", "true");
+	ReadingSet *outReadings;
+	void *handle = plugin_init(config, &outReadings, Handler);
+	vector<Reading *> *readings = new vector<Reading *>;
+
+	long testValue = 2;
+	DatapointValue dpv(testValue);
+	Datapoint *value = new Datapoint("test", dpv);
+	Reading *in = new Reading("test", value);
+	readings->push_back(in);
+
+	ReadingSet *readingSet = new ReadingSet(readings);
+	plugin_ingest(handle, (READINGSET *)readingSet);
+
+	vector<Reading *> results = outReadings->getAllReadings();
+	ASSERT_EQ(results.size(), 1);
+	Reading *out = results[0];
+	ASSERT_EQ(out->getDatapointCount(), 3);
+
+	vector<Datapoint *> points = out->getReadingData();
+	ASSERT_EQ(points.size(), 3);
+
+	ASSERT_EQ(points[0]->getName(), "test");
+	ASSERT_EQ(points[0]->getData().toInt(), 2);
+
+	ASSERT_EQ(points[1]->getName(), "Building");
+	ASSERT_EQ(points[1]->getData().toStringValue(), "Pearson");
+
+	ASSERT_EQ(points[2]->getName(), "Location");
+	ASSERT_EQ(points[2]->getData().toStringValue(), "NY");
+}
