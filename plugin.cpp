@@ -5,7 +5,7 @@
  *
  * Released under the Apache 2.0 Licence
  *
- * Author: Amandeep Singh Arora
+ * Author: Amandeep Singh Arora, Mark Riddoch
  */
 
 #include <string>
@@ -59,6 +59,42 @@ typedef struct
 	std::vector<Datapoint *> metadata;
 	std::string	configCatName;
 } FILTER_INFO;
+
+/**
+ * Parse Nested JSON Object
+ * @param metadata Reference to vector of metadata
+ * @param nsetedJSON Reference to nestedJSON Object
+ *
+*/
+void parseNestedJSON(std::vector<Datapoint *> &metadata, const Value& nsetedJSON)
+{
+	for (auto &m : nsetedJSON.GetObject())
+	{
+		if (m.value.IsString())
+		{
+			DatapointValue dpv(string(m.value.GetString()));
+			metadata.push_back(new Datapoint(m.name.GetString(), dpv));
+		}
+		else if (m.value.IsDouble())
+		{
+			DatapointValue dpv(m.value.GetDouble());
+			metadata.push_back(new Datapoint(m.name.GetString(), dpv));
+		}
+		else if (m.value.IsInt64())
+		{
+			DatapointValue dpv((long) m.value.GetInt64());
+			metadata.push_back(new Datapoint(m.name.GetString(), dpv));
+		}
+		else if (m.value.IsObject())
+		{
+			parseNestedJSON(metadata, m.value);
+		}
+		else
+		{
+			Logger::getLogger()->error("Unable to parse value for metadata field '%s', skipping...", m.name.GetString());
+		}
+	}
+}
 
 /**
  * Return the information about this plugin
@@ -116,10 +152,14 @@ PLUGIN_HANDLE plugin_init(ConfigCategory* config,
 				DatapointValue dpv(itr->value.GetDouble());
         			info->metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
 			}
-			else if (itr->value.IsNumber())
+			else if (itr->value.IsInt64())
 			{
-				DatapointValue dpv((long) itr->value.GetInt());
+				DatapointValue dpv((long) itr->value.GetInt64());
         			info->metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
+			}
+			else if (itr->value.IsObject() && strcmp(itr->name.GetString(), "value") == 0)
+			{
+				parseNestedJSON(info->metadata, itr->value);
 			}
 			else
 			{
@@ -164,7 +204,18 @@ void plugin_ingest(PLUGIN_HANDLE *handle,
 	{
 		for (auto &it : info->metadata)
 		{
-			elem->addDatapoint(new Datapoint(*it));
+			if (it->getData().getType() == DatapointValue::T_STRING)
+			{
+				string name = it->getName();
+				string value = it->getData().toStringValue();
+				string sub = elem->substitute(value);
+				DatapointValue dpv(sub);
+				elem->addDatapoint(new Datapoint(name, dpv));
+			}
+			else
+			{
+				elem->addDatapoint(new Datapoint(*it));
+			}
 		}
 		//AssetTracker::getAssetTracker()->addAssetTrackingTuple(info->configCatName, elem->getAssetName(), string("Filter"));
 		AssetTracker *instance =  nullptr;
@@ -212,10 +263,14 @@ void plugin_reconfigure(PLUGIN_HANDLE *handle, const string& newConfig)
 				DatapointValue dpv(itr->value.GetDouble());
         			metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
 			}
-			else if (itr->value.IsNumber())
+			else if (itr->value.IsInt64())
 			{
-				DatapointValue dpv((long) itr->value.GetInt());
+				DatapointValue dpv((long) itr->value.GetInt64());
         			metadata.push_back(new Datapoint(itr->name.GetString(), dpv));
+			}
+			else if (itr->value.IsObject() && strcmp(itr->name.GetString(), "value") == 0)
+			{
+				parseNestedJSON(metadata, itr->value);
 			}
 			else
 			{
@@ -230,6 +285,7 @@ void plugin_reconfigure(PLUGIN_HANDLE *handle, const string& newConfig)
 	for (const auto &it : tmp)
 		delete it;
 }
+
 
 /**
  * Call the shutdown method in the plugin
