@@ -21,6 +21,7 @@ extern "C"
 	PLUGIN_HANDLE plugin_init(ConfigCategory *config,
 							  OUTPUT_HANDLE *outHandle,
 							  OUTPUT_STREAM output);
+	void plugin_shutdown(PLUGIN_HANDLE handle);
 	int called = 0;
 
 	void Handler(void *handle, READINGSET *readings)
@@ -51,6 +52,8 @@ TEST(METADATA, MetadataDisabled)
 	readings->push_back(in);
 
 	ReadingSet *readingSet = new ReadingSet(readings);
+	readings->clear();
+	delete readings;
 	plugin_ingest(handle, (READINGSET *)readingSet);
 
 	vector<Reading *> results = outReadings->getAllReadings();
@@ -60,6 +63,10 @@ TEST(METADATA, MetadataDisabled)
 
 	vector<Datapoint *> points = out->getReadingData();
 	ASSERT_EQ(points.size(), 1);
+
+	delete outReadings;
+	delete config;
+	plugin_shutdown(handle);
 }
 
 TEST(METADATA, MetadataAddDataPoints)
@@ -83,6 +90,8 @@ TEST(METADATA, MetadataAddDataPoints)
 	readings->push_back(in);
 
 	ReadingSet *readingSet = new ReadingSet(readings);
+	readings->clear();
+	delete readings;
 	plugin_ingest(handle, (READINGSET *)readingSet);
 
 	vector<Reading *> results = outReadings->getAllReadings();
@@ -92,6 +101,10 @@ TEST(METADATA, MetadataAddDataPoints)
 
 	vector<Datapoint *> points = out->getReadingData();
 	ASSERT_EQ(points.size(), 2);
+
+	delete outReadings;
+	delete config;
+	plugin_shutdown(handle);
 }
 
 TEST(METADATA, MetadataAddSubs)
@@ -115,6 +128,8 @@ TEST(METADATA, MetadataAddSubs)
 	readings->push_back(in);
 
 	ReadingSet *readingSet = new ReadingSet(readings);
+	readings->clear();
+	delete readings;
 	plugin_ingest(handle, (READINGSET *)readingSet);
 
 	vector<Reading *> results = outReadings->getAllReadings();
@@ -126,6 +141,10 @@ TEST(METADATA, MetadataAddSubs)
 	ASSERT_EQ(points.size(), 2);
 	Datapoint *dp = out->getDatapoint("Source");
 	ASSERT_STREQ(dp->getData().toStringValue().c_str(), "Camera 2");
+
+	delete outReadings;
+	delete config;
+	plugin_shutdown(handle);
 }
 
 TEST(METADATA, INTEGER_MIN_MAX_LIMITS)
@@ -149,6 +168,8 @@ TEST(METADATA, INTEGER_MIN_MAX_LIMITS)
 	readings->push_back(in);
 
 	ReadingSet *readingSet = new ReadingSet(readings);
+	readings->clear();
+	delete readings;
 	plugin_ingest(handle, (READINGSET *)readingSet);
 
 	vector<Reading *> results = outReadings->getAllReadings();
@@ -166,6 +187,10 @@ TEST(METADATA, INTEGER_MIN_MAX_LIMITS)
 
 	ASSERT_EQ(points[2]->getName(), "INT2");
 	ASSERT_EQ(points[2]->getData().toInt(), -2147483647);
+
+	delete outReadings;
+	delete config;
+	plugin_shutdown(handle);
 }
 
 TEST(METADATA, LONG_MIN_MAX_LIMITS)
@@ -189,6 +214,8 @@ TEST(METADATA, LONG_MIN_MAX_LIMITS)
 	readings->push_back(in);
 
 	ReadingSet *readingSet = new ReadingSet(readings);
+	readings->clear();
+	delete readings;
 	plugin_ingest(handle, (READINGSET *)readingSet);
 
 	vector<Reading *> results = outReadings->getAllReadings();
@@ -206,6 +233,10 @@ TEST(METADATA, LONG_MIN_MAX_LIMITS)
 
 	ASSERT_EQ(points[2]->getName(), "LONG2");
 	ASSERT_EQ(points[2]->getData().toInt(), -9223372036854775807);
+
+	delete outReadings;
+	delete config;
+	plugin_shutdown(handle);
 }
 
 TEST(METADATA, MetadataNestedJSON)
@@ -229,6 +260,8 @@ TEST(METADATA, MetadataNestedJSON)
 	readings->push_back(in);
 
 	ReadingSet *readingSet = new ReadingSet(readings);
+	readings->clear();
+	delete readings;
 	plugin_ingest(handle, (READINGSET *)readingSet);
 
 	vector<Reading *> results = outReadings->getAllReadings();
@@ -247,4 +280,8 @@ TEST(METADATA, MetadataNestedJSON)
 
 	ASSERT_EQ(points[2]->getName(), "Location");
 	ASSERT_EQ(points[2]->getData().toStringValue(), "NY");
+
+	delete outReadings;
+	delete config;
+	plugin_shutdown(handle);
 }
